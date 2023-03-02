@@ -1,0 +1,80 @@
+Experiment: first
+returns with code number: 0
+returns result: 0
+with time:
+2e-06s
+0s
+0s
+0s
+1e-06s
+1e-06s
+1e-06s
+1e-06s
+1e-06s
+0s
+
+
+Experiment: second
+returns with code number: 0
+returns result: 80
+with time:
+0s
+0s
+0s
+1e-06s
+1e-06s
+1e-06s
+1e-06s
+1e-06s
+0s
+0s
+
+
+Experiment: third
+returns with code number: 0
+returns result: 388742192
+with time:
+0.527698s
+0.51365s
+0.521469s
+0.521066s
+0.52532s
+0.515665s
+0.510802s
+0.524491s
+0.517642s
+0.517993s
+
+
+Experiment: fourth
+returns with code number: 0
+returns result: 647619052
+with time:
+2.60512s
+2.62486s
+2.62694s
+2.6143s
+2.6157s
+2.63333s
+2.60576s
+2.62407s
+2.63422s
+2.63657s
+
+
+Experiment: bad
+returns with code number: 1
+returns result: 0
+with time:
+1e-06s
+0s
+0s
+0s
+0s
+1e-06s
+0s
+0s
+1e-06s
+0s
+
+
