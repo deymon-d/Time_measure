@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
                 break;
             case EXEC_EXPERIMENT:
                 if (exec_experiment(fd, &user)) {
+                    delete_user(&user);
                     perror("Bad connection\n");
                     close(fd);
                     return 1;
@@ -49,6 +50,7 @@ int main(int argc, char *argv[]) {
                 return 1;
         }
     }
+    delete_user(&user);
     return 0;
 }
 
