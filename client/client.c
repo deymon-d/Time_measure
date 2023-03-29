@@ -7,7 +7,7 @@
 
 
 int main(int argc, char *argv[]) {
-    if (argc < 4) {
+    if (argc < 3) {
         return 1;
     }
     if (argv[1][0] == 's') {
@@ -73,6 +73,67 @@ int main(int argc, char *argv[]) {
         }
         close(fd);
         return 0;
+    } else if (argv[1][0] == 'g') {
+        int fd = open(argv[2], O_RDONLY);
+        if (fd == -1) {
+            perror("don't found server's answer\n");
+        }
+        size_t count = 0;
+        if (read(fd, &count, sizeof(count)) == -1) {
+            perror("can't read answer\n");
+            return 1;
+        }
+        printf("%d\n", count);
+        double *time_results = calloc(count, sizeof(time_results));
+        if (!time_results) {
+            close(fd);
+            perror("can't read answer\n");
+            return 1;
+        }
+        int *return_results = calloc(count, sizeof(return_results));
+        if (!return_results) {
+            close(fd);
+            free(time_results);
+            perror("can't read answer\n");
+            return 1;
+        }
+        if (read(fd, return_results, count * sizeof(*return_results)) == -1) {
+            close(fd);
+            free(time_results);
+            free(return_results);
+            perror("can't read answer\n");
+            return 1;
+        }
+        if (read(fd, time_results, count * sizeof(*time_results)) == -1) {
+            close(fd);
+            free(time_results);
+            free(return_results);
+            perror("can't read answer\n");
+            return 1;
+        }
+        for (int i = 0; i < count; ++i) {
+            printf("Experiment return with code number %d\n"
+                   "with time %.10g\n", return_results[i], time_results[i]);
+        }
+        printf("Experiment returns result:\n");
+        off_t file_size = 0;
+        if (read(fd, &file_size, sizeof(file_size)) == -1) {
+            close(fd);
+            free(time_results);
+            free(return_results);
+            perror("can't read answer\n");
+            return 1;
+        }
+        if (copy(fd, 1, file_size) == -1) {
+            close(fd);
+            free(time_results);
+            free(return_results);
+            perror("can't read answer\n");
+            return 1;
+        }
+        close(fd);
+        free(time_results);
+        free(return_results);
     }
 }
 
