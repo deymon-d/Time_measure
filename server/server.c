@@ -13,7 +13,8 @@ int main(int argc, char *argv[]) {
         perror("Not found connection\n");
         return 1;
     }
-    int fd = open(argv[1], O_RDONLY);
+    int fd_ans = -1;
+    int fd = open("channel.txt", /*argv[1],*/ O_RDONLY);
     if (fd == -1) {
         perror("Not found connection\n");
         return 1;
@@ -37,12 +38,19 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             case EXEC_EXPERIMENT:
-                if (exec_experiment(fd, &user)) {
+                fd_ans = open("ans.txt", O_CREAT | O_WRONLY, S_IWUSR | S_IRUSR);
+                if (fd_ans == -1) {
                     delete_user(&user);
-                    perror("Bad connection\n");
-                    close(fd);
+                    perror("server dead inside\n");
                     return 1;
                 }
+                if (exec_experiment(fd_ans, &user)) {
+                    delete_user(&user);
+                    perror("Bad connection\n");
+                    close(fd_ans);
+                    return 1;
+                }
+                close(fd_ans);
                 break;
             default:
                 perror("Bad request\n");
@@ -50,6 +58,7 @@ int main(int argc, char *argv[]) {
                 return 1;
         }
     }
+    close(fd);
     delete_user(&user);
     return 0;
 }
