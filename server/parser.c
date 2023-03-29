@@ -1,6 +1,8 @@
 #include <fcntl.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+#include <wait.h>
 
 #include "parser.h"
 #include "../shared/copy.h"
@@ -53,9 +55,71 @@ int add_experiment(int fd, struct User *user) {
     return 0;
 }
 
+enum { BUF_SIZE = 4096 };
 #include <stdio.h>
-
 int exec_experiment(int fd, struct User *user) {
-    printf("1\n");
+
+    char buf[BUF_SIZE] = "/home/dmitriy/time_measure/";
+    size_t pos = strlen(buf);
+    for (int i = 0; i < strlen(user->experiments_->name_); ++i) {
+        buf[pos + i] = user->experiments_->name_[i];
+    }
+    for (int i = 0; i < user->experiments_->count_ ; ++i) {
+        time_t start = time(NULL);
+        int fd_input = open(user->experiments_->dir_data_, O_RDONLY);
+        if (fd_input == -1) {
+            return 1;
+        }
+        int fd_output = open(user->experiments_->dir_results_, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
+        if (fd_output == -1) {
+            close(fd_input);
+            return 1;
+        }
+        pid_t pid = fork();
+        if (pid == -1) {
+            close(fd_input);
+            close(fd_output);
+            return 1;
+        }
+        if (!pid) {
+            dup2(fd_input, 0);
+            dup2(fd_output, 1);
+            close(fd_input);
+            close(fd_output);
+            execlp(buf, user->experiments_->name_, NULL);
+            _exit(12);
+        }
+        int res = 0;
+        waitpid(pid, &res, 0);
+        user->experiments_->returns_results_[i] = WEXITSTATUS(res);
+        user->experiments_->time_results_[i] = (double)(time(NULL) - start) / CLOCKS_PER_SEC;
+        close(fd_output);
+        close(fd_input);
+    }
+    size_t count = user->experiments_->count_;
+    if (write(fd, &count, sizeof(count)) == -1) {
+        return 1;
+    }
+    if (write(fd, user->experiments_->returns_results_, count * sizeof(*user->experiments_->returns_results_)) == -1) {
+        return 1;
+    }
+    if (write(fd, user->experiments_->time_results_, count * sizeof(*user->experiments_->time_results_)) == -1) {
+        return 1;
+    }
+    int fd_ans = open(user->experiments_->dir_results_,  O_RDONLY);
+    if (fd_ans == -1) {
+        return 1;
+    }
+    off_t file_size = lseek(fd_ans, 0, SEEK_END);
+    if (write(fd, &file_size, sizeof(file_size)) == -1) {
+        close(fd_ans);
+        return 1;
+    }
+    lseek(fd_ans, 0, SEEK_SET);
+    if (copy(fd_ans, fd, file_size) == -1) {
+        close(fd_ans);
+        return 1;
+    }
+    close(fd_ans);
     return 0;
 }
