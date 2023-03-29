@@ -65,7 +65,7 @@ int exec_experiment(int fd, struct User *user) {
         buf[pos + i] = user->experiments_->name_[i];
     }
     for (int i = 0; i < user->experiments_->count_ ; ++i) {
-        time_t start = time(NULL);
+        time_t start = clock();
         int fd_input = open(user->experiments_->dir_data_, O_RDONLY);
         if (fd_input == -1) {
             return 1;
@@ -92,7 +92,7 @@ int exec_experiment(int fd, struct User *user) {
         int res = 0;
         waitpid(pid, &res, 0);
         user->experiments_->returns_results_[i] = WEXITSTATUS(res);
-        user->experiments_->time_results_[i] = (double)(time(NULL) - start) / CLOCKS_PER_SEC;
+        user->experiments_->time_results_[i] = (double)(clock() - start) / CLOCKS_PER_SEC;
         close(fd_output);
         close(fd_input);
     }
