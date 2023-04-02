@@ -56,8 +56,8 @@ int add_experiment(int fd, struct User *user) {
     return 0;
 }
 
-enum { BUF_SIZE = 4096 };
-#include <stdio.h>
+enum { BUF_SIZE = 4096, COUNT_NSECS_IN_SEC = 1000000000 };
+
 int exec_experiment(int fd, struct User *user) {
 
     char buf[BUF_SIZE] = "/home/dmitriy/time_measure/";
@@ -75,6 +75,8 @@ int exec_experiment(int fd, struct User *user) {
             close(fd_input);
             return 1;
         }
+        struct timespec start = {0};
+        clock_gettime(CLOCK_REALTIME, &start);
         pid_t pid = fork();
         if (pid == -1) {
             close(fd_input);
@@ -92,9 +94,10 @@ int exec_experiment(int fd, struct User *user) {
         int res = 0;
         waitpid(pid, &res, 0);
         user->experiments_->returns_results_[i] = WEXITSTATUS(res);
-        struct tms time_child = {};
-        times(&time_child);
-        user->experiments_->time_results_[i] = (double)(time_child.tms_cstime + time_child.tms_cutime) / CLOCKS_PER_SEC;
+        struct timespec end = {0};
+        clock_gettime(CLOCK_REALTIME, &end);
+        user->experiments_->time_results_[i] = (double)(end.tv_sec - start.tv_sec) +
+                                               (double)(end.tv_nsec - start.tv_nsec) / COUNT_NSECS_IN_SEC;;
         close(fd_output);
         close(fd_input);
     }
