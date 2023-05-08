@@ -5,15 +5,13 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../shared/copy.h"
-
 void work_in_save_mod(struct User * user) {
-    printf("1924");
+    printf("1924\n");
     int fd = open("extra_save.txt", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     if (fd == -1) {
         return;
     }
-    int size = strlen(user->name_);
+    int size = user->name_ ? strlen(user->name_) : 0;
     if (write(fd, &size, sizeof(size)) == -1) {
         close(fd);
         return;
@@ -64,27 +62,34 @@ void recovery(struct User *user) {
         close(fd);
         return;
     }
-    user->name_ = calloc(size + 1, sizeof(*user->name_));
-    if (!user->name_) {
-        close(fd);
-        return;
-    }
-    user->name_ = 0;
-    if (read(fd, user->name_, size) == -1) {
-        close(fd);
-        return;
+    if (size != 0) {
+        user->name_ = calloc(size + 1, sizeof(*user->name_));
+        if (!user->name_) {
+            close(fd);
+            return;
+        }
+        user->name_[size] = 0;
+        if (read(fd, user->name_, size) == -1) {
+            close(fd);
+            return;
+        }
     }
 
+    user->experiments_ = calloc(1, sizeof(*user->experiments_));
+    if (!user->experiments_) {
+        close(fd);
+        return;
+    }
     if (read(fd, &size, sizeof(size)) == -1) {
         close(fd);
         return;
     }
-    user->experiments_->name_ = calloc(size, sizeof(*user->experiments_->name_));
+    user->experiments_->name_ = calloc(size + 1, sizeof(*user->experiments_->name_));
     if (!user->experiments_->name_) {
         close(fd);
         return;
     }
-    user->experiments_->name_ = 0;
+    user->experiments_->name_[size] = 0;
     if (read(fd, user->experiments_->name_, size + 1) == -1) {
         close(fd);
         return;
@@ -93,12 +98,12 @@ void recovery(struct User *user) {
         close(fd);
         return;
     }
-    user->experiments_->dir_data_ = calloc(size, sizeof(*user->experiments_->dir_data_));
+    user->experiments_->dir_data_ = calloc(size + 1, sizeof(*user->experiments_->dir_data_));
     if (!user->experiments_->dir_data_) {
         close(fd);
         return;
     }
-    user->experiments_->dir_data_ = 0;
+    user->experiments_->dir_data_[size] = 0;
     if (read(fd, user->experiments_->dir_data_, size + 1) == -1) {
         close(fd);
         return;
