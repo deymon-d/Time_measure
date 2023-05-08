@@ -7,3 +7,6 @@ Server:
 
 Client:
 	gcc -m32 -O2 $(CLIENT_FILES) -o client.exe
+
+test:
+	g++ ../tests/tests.cpp -o test.exe
