@@ -1,13 +1,13 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/times.h>
 #include <unistd.h>
 #include <wait.h>
 
 #include "parser.h"
 #include "../shared/copy.h"
 #include "../shared/request.h"
+#include "path.h"
 
 int add_experiment(int fd, struct User *user) {
     user->experiments_ = calloc(1, sizeof(*user->experiments_));
@@ -59,8 +59,8 @@ int add_experiment(int fd, struct User *user) {
 enum { BUF_SIZE = 4096, COUNT_NSECS_IN_SEC = 1000000000 };
 
 int exec_experiment(int fd, struct User *user) {
-
-    char buf[BUF_SIZE] = "/home/dmitriy/time_measure/";
+    char buf[BUF_SIZE];
+    strcpy(buf, BUILD_DIR);
     size_t pos = strlen(buf);
     for (int i = 0; i < strlen(user->experiments_->name_); ++i) {
         buf[pos + i] = user->experiments_->name_[i];
