@@ -1,0 +1,1 @@
+char BUILD_DIR[] = ".";
